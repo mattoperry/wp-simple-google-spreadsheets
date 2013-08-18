@@ -48,4 +48,26 @@ register_deactivation_hook( __FILE__, array( 'Simple_Google_Spreadsheets', 'deac
 
 $SGS = Simple_Google_Spreadsheets::get_instance();
 
+//some WordPress-style wrapper functions to retrieve data:
+
+function sgs_get_cell( $sheet, $col, $row ) {
+	global $SGS;
+	return $SGS->fetch( $sheet, $col, $row, false );
+}
+
+function sgs_cell( $sheet, $col, $row ) {
+	global $SGS;
+	$SGS->fetch( $sheet, $col, $row );
+}
+
+function sgs_get_row( $sheet, $row ) {
+	global $SGS;
+	return $SGS->fetch( $sheet, null, $row );
+}
+
+function sgs_get_col( $sheet, $col ) {
+	global $SGS;
+	return $SGS->( $sheet, $col, null );
+}
+
 ?>
