@@ -9,8 +9,10 @@
  */
 
 /** Include the PEAR JSON library.  We'll use it instead of internal JSON because a)  we don't really need to do much except decode and b) we want this to work even in situations without native JSON support (like old PHP or times when JSON is disabled.) **/
+if ( !class_exists( 'Services_JSON' ) ) {
+	include_once( plugin_dir_path(__FILE__) . 'lib/Services_JSON.php' );
+}
 
-include_once( plugin_dir_path(__FILE__) . 'lib/Services_JSON.php' );
 
 /***
  *

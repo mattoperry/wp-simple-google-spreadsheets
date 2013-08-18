@@ -295,7 +295,7 @@ class Simple_Google_Spreadsheets {
 		return $sheet;
 	}
 
-	public function fetch( $name=null, $row=null, $col=null, $echo=true ) {		
+	public function fetch( $name=null, $col=null, $row=null, $echo=true ) {		
 
 		/** validate the spreadsheet name -- get the data **/
 
