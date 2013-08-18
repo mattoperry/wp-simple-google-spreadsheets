@@ -67,7 +67,7 @@ function sgs_get_row( $sheet, $row ) {
 
 function sgs_get_col( $sheet, $col ) {
 	global $SGS;
-	return $SGS->( $sheet, $col, null );
+	return $SGS->fetch( $sheet, $col, null );
 }
 
 ?>
