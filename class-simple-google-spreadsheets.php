@@ -239,35 +239,38 @@ class Simple_Google_Spreadsheets {
 			$worksheet_args['row_names'] = true;
 
 			$data = array();
+			$data_labels = array();
 			$cols = array();
 
 			foreach ( $j_response->feed->entry as $cell ) {
 
 				$c = $cell->{'gs$cell'};
+				$t = $cell->{'title'};
 
-				// if the first column contains the row label, use that
+				$title = $t->{'title'};
+
+				//record the indexed data -- this builds an array where the incdeces are the cel titles .. like C1, D15, CC14 etc ...
+				$data[$title] = $c->{'$t'};
+
+				//now build the array which assumes that the first item in both rows and columns are headings -- note that we assume here tha both have titles
+				//thus it's not possible for just column or just row titles, but noth or neither are required.
+
+				// if we're in the first column, adopt the value here as the row name
 				if ( $c->col == 1 ) {
-					$row_index = ( isset( $worksheet_args['row_names'] ) && ( $worksheet_args['row_names'] == true ) ) ? $c->{'$t'} : $c->row;
-					if ( $row_index == $c->{'$t'} ) {
-						continue;
-					}
+					$row_index == $c->{'$t'};
+					continue;
 				}
-
-				if ( isset( $worksheet_args['col_names'] ) &&  ( $worksheet_args['col_names'] == true ) ) {
 					
-					if ( $c->row == 1 ) {
-						$cols[$c->col] = $c->{'$t'};
-					}else{
-						$data[$row_index][$cols[$c->col]] = $c->{'$t'};
-					}
-
+				// if we're in the first row, build the list of column names
+				if ( $c->row == 1 ) {
+					$cols[$c->col] = $c->{'$t'};
 				}else{
-					$data[$row_index][$c->col] = $c->{'$t'};
-				}
-				
+					//otherwise record the contents of the cel f'reel
+					$data_labels[$row_index][$cols[$c->col]] = $c->{'$t'};
+				}				
 			}
 
-			$ret = ( $data ) ? $data : false;
+			$ret = array( 'no_labels' => $data, 'labels' => $data_labels );
 
 			if ( $ret ) {
 				//cache it before we return it
@@ -295,7 +298,16 @@ class Simple_Google_Spreadsheets {
 		return $sheet;
 	}
 
-	public function fetch( $name=null, $col=null, $row=null, $echo=true ) {		
+	/** fetch some data from the spreadsheet
+	@param str $name -- the name of the spreadsheet
+	@param mixed $arg -- an argument sepcifying what data to retrieve.  Acts accorind to the following logic:
+	-- if a string, it will be treated as a cell title, usually of the form B1, S12 , CC14 etc ...
+	-- if an array, it will be treated as a tupple of the form (row, column)  if either row or column is null, we try to fetch the other ... 
+	-- if both are specified, then the cell contents -- if found -- are fetched
+	@param bool $echo -- if true, the reults are echoed, otherwise returned
+	**/
+
+	public function fetch( $name=null, $arg=null, $echo=true ) {		
 
 		/** validate the spreadsheet name -- get the data **/
 
@@ -304,14 +316,15 @@ class Simple_Google_Spreadsheets {
 		if ( !$data ) {
 			return false;
 		}
-			
 
-		if ( $row && $col ) {
-			$ret = ( isset( $data[$row][$col] ) ) ? $data[$row][$col] : false;
-		}elseif( $row ) {
-			$ret = ( isset( $data[$row] ) ) ? $data[$row] : false;
-		}else{
-			$ret = $this->get_column( $data, $col );
+		if ( is_array( $arg ) && isset( $arg[0] ) && isset( $arg[1] ) )  {
+			$ret = ( isset( $data_labels[$arg[0]][$arg[1]] ) ) ? $data_labels[$arg[0]][$arg[1]] : false;
+		}elseif( is_array( $arg ) && isset( $arg[0] ) ) {
+			$ret = ( isset( $data_labels[$arg[0]] ) ) ? $data_labels[$arg[0]] : false;
+		}elseif( is_array( $arg ) && isset( $arg[1] ) ) {
+			$ret = $this->get_column( $data_labels, $arg[1] );
+		}elseif( is_string($arg) ) {
+			$ret = $this->data[$arg];
 		}
 
 		if ( $echo && !is_array( $ret ) ) {
